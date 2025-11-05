@@ -111,9 +111,9 @@ if busca == "c) Deputados":
               df_orgaos = pd.DataFrame(dados_orgaos['dados'])
               st.subheader("Órgãos que o deputado(a) integra")
               st.dataframe(df_orgaos[['siglaOrgao', 'nomePublicacao', 'titulo']],
-                          column_config={'siglaOrgao': 'Sigla do Órgão',
-                                         'nomePublicacao': 'Nome do Orgao',
-                                         'titulo': 'Status do Deputado'})
+                           column_config={'siglaOrgao': 'Sigla do Órgão',
+                                          'nomePublicacao': 'Nome do Orgao',
+                                          'titulo': 'Status do Deputado'})
 #Despesas do Deputado(a)
             url_despesas = f"https://dadosabertos.camara.leg.br/api/v2/deputados/{deputado_id}/despesas"
             response_despesas = requests.get(url_despesas)
