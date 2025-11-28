@@ -148,4 +148,4 @@ if busca == "c) Deputados":
             st.write(f"Nenhum deputado(a) encontrado com o nome '{nome_deputado}'.")
     else:
             st.warning("Por favor, digite o **nome** do deputado para realizar a busca.") 
-       st.write("Obrigado por usar o programa. Até a próxima!")
+    st.write("Obrigado por usar o programa. Até a próxima!")
