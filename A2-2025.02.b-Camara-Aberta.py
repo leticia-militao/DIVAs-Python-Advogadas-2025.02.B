@@ -87,7 +87,7 @@ if busca == "b) Propostas de Emenda Constitucional":
 #Resultado do Menu c) Deputados
 if busca == "c) Deputados":
     nome_deputado = st.text_input("Digite o nome do deputado(a):")
-    if nome_deputado:
+    if nome_deputado.strip:
         url_deputados = f"https://dadosabertos.camara.leg.br/api/v2/deputados?nome={nome_deputado}"
         response = requests.get(url_deputados)
         #Informações Gerais do Deputado(a)
@@ -167,7 +167,7 @@ if busca == "c) Deputados":
                         x='tipoDespesa',
                         y='valorTotal',
                         color='tipoDespesa',
-                        title=f'Valor Total de Despesas de {deputado_nome} por Tipo',
+                        title=f'Despesas de {deputado_nome}',
                         labels={'tipoDespesa': ' Tipo de Despesa ', 'valorTotal': ' Valor Total da Despesa (em R$) '},
                         template='plotly_white'
                     )                  
@@ -184,6 +184,5 @@ if busca == "c) Deputados":
         else:
             st.error(f"Erro na requisição. Status: {response.status_code}")
     else:
-        st.warning("Por favor, digite o **nome** do deputado para realizar a busca.")
-        
+        st.warning("Por favor, digite o **nome** do deputado para realizar a busca.")    
     st.write("Obrigado por usar o programa. Até a próxima!")
