@@ -87,7 +87,7 @@ if busca == "b) Propostas de Emenda Constitucional":
 #Resultado do Menu c) Deputados
 if busca == "c) Deputados":
     nome_deputado = st.text_input("Digite o nome do deputado(a):")
-    if nome_deputado.strip:
+    if nome_deputado:
         url_deputados = f"https://dadosabertos.camara.leg.br/api/v2/deputados?nome={nome_deputado}"
         response = requests.get(url_deputados)
         #Informações Gerais do Deputado(a)
@@ -124,65 +124,28 @@ if busca == "c) Deputados":
                                                 'nomePublicacao': 'Nome do Orgao',
                                                 'titulo': 'Status do Deputado'})
                 #Despesas do Deputado(a)
-                base_url_despesas = f"https://dadosabertos.camara.leg.br/api/v2/deputados/{deputado_id}/despesas?itens=100&ordenarPor=dataDocumento&ordem=DESC"
-                current_url = base_url_despesas
-                all_despesas = []
-                st.info("Buscando todas as páginas de despesas... Isso pode levar alguns segundos.")
-                progress_bar = st.progress(0)
-                req_count = 0
-                while current_url:
-                    try:
-                        response_despesas = requests.get(current_url)                        
-                        if response_despesas.status_code == 200:
-                            dados_despesas = response_despesas.json()
-                            if 'dados' in dados_despesas and dados_despesas['dados']:
-                                all_despesas.extend(dados_despesas['dados'])
-                                next_url = None
-                                if 'links' in dados_despesas:
-                                    for link in dados_despesas['links']:
-                                        if link['rel'] == 'next':
-                                            next_url = link['href']
-                                            break                        
-                                current_url = next_url
-                                req_count += 1
-                                progress_bar.progress(min(req_count * 5, 95))
-                            else:
-                                current_url = None
-                        else:
-                            st.error(f"Erro ao buscar despesas na página {req_count + 1}. Status: {response_despesas.status_code}")
-                            current_url = None
-                    except requests.exceptions.RequestException as e:
-                        st.error(f"Erro de conexão: {e}")
-                        current_url = None
-                progress_bar.progress(100)
-                st.success(f"Busca concluída. {len(all_despesas)} despesas encontradas em {req_count} requisições.")
-                if all_despesas:
-                    df_despesas = pd.DataFrame(all_despesas)
-                    df_despesas['valorDocumento'] = pd.to_numeric(df_despesas['valorDocumento'], errors='coerce')
-                    df_despesas.dropna(subset=['valorDocumento'], inplace=True)
-                    despesas_agrupadas = df_despesas.groupby('tipoDespesa')['valorDocumento'].sum().reset_index()
-                    despesas_agrupadas.columns = ['tipoDespesa', 'valorTotal']                  
-                    fig_despesas = px.bar(
-                        despesas_agrupadas,
-                        x='tipoDespesa',
-                        y='valorTotal',
-                        color='tipoDespesa',
-                        title=f'Despesas de {deputado_nome}',
-                        labels={'tipoDespesa': ' Tipo de Despesa ', 'valorTotal': ' Valor Total da Despesa (em R$) '},
-                        template='plotly_white'
-                    )                  
-                    fig_despesas.update_layout(
-                        xaxis={'categoryorder':'total descending'},
-                        showlegend=False
-                    )
+                url_despesas = f"https://dadosabertos.camara.leg.br/api/v2/deputados/{deputado_id}/despesas"
+                response_despesas = requests.get(url_despesas)
+                if response_despesas.status_code == 200:
+                    dados_despesas = response_despesas.json()
+                    df_despesas = pd.DataFrame(dados_despesas['dados'])
+                    if not df_despesas.empty:
+                      st.subheader("Primeiras despesas do Deputado(a)")
+                      fig_despesas = px.bar(df_despesas,
+                                          x='mes',
+                                          y='valorDocumento',
+                                          color='tipoDespesa',
+                                          title=f'Despesas de {nome_deputado}',
+                                          labels={'tipoDespesa': ' Tipo de Despesa ',
+                                                  'valorDocumento': ' Valor da Despesa (em R$) ',
+                                                  'mes': ' Mês '})
                     st.plotly_chart(fig_despesas, use_container_width=True)
                 else:
-                    st.warning(f"Nenhuma despesa encontrada para {deputado_nome} no período.")
-                
-            else:
-                st.warning(f"Nenhum deputado(a) encontrado com o nome '{nome_deputado}'.")
+                    st.warning(f"Nenhuma despesa encontrada para {nome_deputado} no período.")         
+                    st.write("Obrigado por usar o programa. Até a próxima!")
         else:
-            st.error(f"Erro na requisição. Status: {response.status_code}")
+            st.warning(f"Erro na requisição.")
+            st.write(f"Nenhum deputado(a) encontrado com o nome '{nome_deputado}'.")
     else:
-        st.warning("Por favor, digite o **nome** do deputado para realizar a busca.")    
-    st.write("Obrigado por usar o programa. Até a próxima!")
+            st.warning("Por favor, digite o **nome** do deputado para realizar a busca.") 
+       st.write("Obrigado por usar o programa. Até a próxima!")
