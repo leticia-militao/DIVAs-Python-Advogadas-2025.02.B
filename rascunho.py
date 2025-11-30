@@ -130,7 +130,7 @@ if busca == "c) Deputados":
                     dados_despesas = response_despesas.json()
                     df_despesas = pd.DataFrame(dados_despesas['dados'])
                     if not df_despesas.empty:
-                      st.subheader("Últimas despesas do Deputado(a)")
+                      st.subheader("Primeiras despesas do Deputado(a)")
                       fig_despesas = px.bar(df_despesas,
                                           x='mes',
                                           y='valorDocumento',
@@ -146,3 +146,6 @@ if busca == "c) Deputados":
         else:
             st.warning(f"Erro na requisição.")
             st.write(f"Nenhum deputado(a) encontrado com o nome '{nome_deputado}'.")
+    else:
+            st.warning("Por favor, digite o **nome** do deputado para realizar a busca.") 
+    st.write("Obrigado por usar o programa. Até a próxima!")
