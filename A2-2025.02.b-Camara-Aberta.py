@@ -211,14 +211,16 @@ elif busca == "c) Deputados":
                     df_despesas = pd.DataFrame(dados_despesas)                    
                     if not df_despesas.empty:                        
                         df_despesas['valorDocumento'] = pd.to_numeric(df_despesas['valorDocumento'], errors='coerce').fillna(0)                        
-                        st.subheader("Primeiras despesas do Deputado(a) (últimos 10 lançamentos)")
+                        st.subheader("Últimas despesas do Deputado(a) (últimos 10 lançamentos)")
                         df_grouped_despesas = df_despesas.groupby('tipoDespesa')['valorDocumento'].sum().reset_index()                        
                         fig_despesas = px.bar(df_grouped_despesas,
-                                             x='tipoDespesa',
+                                             x='mes',
                                              y='valorDocumento',
-                                             title=f'Total de Despesas por Tipo de {deputado_nome}',
+                                             color='tipoDespesa',
+                                             title=f'Despesas por Tipo de {deputado_nome}',
                                              labels={'tipoDespesa': ' Tipo de Despesa ',
-                                                     'valorDocumento': ' Valor Total (em R$) '},
+                                                     'valorDocumento': ' Valor Total (em R$) ',
+                                                     'mes': 'Mês'},
                                              template="plotly_white")
                         fig_despesas.update_layout(xaxis_tickangle=-45)
                         st.plotly_chart(fig_despesas, use_container_width=True)
