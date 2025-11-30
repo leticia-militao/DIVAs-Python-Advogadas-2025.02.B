@@ -46,8 +46,25 @@ if busca == "a) Projetos de Lei":
                         st.subheader("Detalhes do Projeto")
                         st.write(f"Situação atual: {detalhes['statusProposicao']['descricaoSituacao']}")
                         st.write(f"Ementa completa: {detalhes['ementa']}")
+                        autores = detalhes.get('autores', [])
+                        if autores:
+                            primeiro_autor = autores[0]
+                            nome_autor = primeiro_autor.get('nome', 'N/A')
+                            tipo_autor = primeiro_autor.get('tipo', 'N/A')
+                            uri_autor = primeiro_autor.get('uri')                            
+                            st.markdown(f"**Autor Principal:** {nome_autor} ({tipo_autor})")
+                            if uri_autor and 'deputados' in uri_autor:
+                                st.markdown(f"[[Detalhes do Autor]({uri_autor})]")
+                        else:
+                            st.write("**Autor Principal:** Informação não disponível")
+                        url_detalhe = detalhes.get('urlDetalhe')
+                        if url_detalhe:
+                            st.markdown(f"**Link para Detalhamento Completo:** [Acesse a página oficial da proposição]({url_detalhe})")
                         st.write("Obrigado por usar o programa. Até a próxima!")
                         break
+                    else:
+                        st.error(f"Erro ao buscar detalhes. Status: {response_detalhes.status_code}")
+                        break  
             else:
               st.warning(f"Projeto com o número {numero_pl} do ano {ano_pl} não encontrado.")
         else:
@@ -75,12 +92,29 @@ if busca == "b) Propostas de Emenda Constitucional":
                           st.subheader("Detalhes da PEC")
                           st.write(f"Situação atual: {detalhes['statusProposicao']['descricaoSituacao']}")
                           st.write(f"Ementa completa: {detalhes['ementa']}")
+                          autores = detalhes.get('autores', [])
+                        if autores:
+                            primeiro_autor = autores[0]
+                            nome_autor = primeiro_autor.get('nome', 'N/A')
+                            tipo_autor = primeiro_autor.get('tipo', 'N/A')
+                            uri_autor = primeiro_autor.get('uri')                            
+                            st.markdown(f"**Autor Principal:** {nome_autor} ({tipo_autor})")
+                            if uri_autor and 'deputados' in uri_autor:
+                                st.markdown(f"[[Detalhes do Autor]({uri_autor})]")
+                        else:
+                            st.write("**Autor Principal:** Informação não disponível")
+                        url_detalhe = detalhes.get('urlDetalhe')
+                        if url_detalhe:
+                            st.markdown(f"**Link para Detalhamento Completo:** [Acesse a página oficial da proposição]({url_detalhe})")
                           st.write("Obrigado por usar o programa. Até a próxima!")
                           break
+                      else:
+                        st.error(f"Erro ao buscar detalhes. Status: {response_detalhes.status_code}")
+                        break
             else:
               st.warning(f"PEC {numero_pec}/{ano_pec} não encontrada.")
         else:
-            st.warning(f"Erro na requisição. Status: {responde_pec.status_code}")
+            st.warning(f"Erro na requisição. Status: {response_pec.status_code}")
     else:
         st.warning("Por favor, digite o **número** ou o **ano** da PEC para realizar a busca.")
 
