@@ -5,7 +5,6 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-# matplotlib não é estritamente necessário se estiver usando Plotly/Streamlit nativo, mas foi mantido.
 import matplotlib.pyplot as plt
 
 # Apresentação
@@ -16,10 +15,9 @@ st.subheader("Aqui você pode buscar informações sobre Projetos de Lei, Propos
 # Menu 1 - Opção de Busca
 st.header("O que você está procurando?")
 opcoes = ["a) Projetos de Lei", "b) Propostas de Emenda Constitucional", "c) Deputados", "d) Sair"]
-# O Streamlit guarda o estado da seleção.
+
 busca = st.radio("Selecione a opção da sua busca:", opcoes)
 
-# Lógica principal baseada na seleção
 if busca == "d) Sair":
     st.subheader("Você escolheu a opção de sair da pesquisa.")
     st.subheader("Obrigado por usar o programa. Até a próxima!")
@@ -31,7 +29,7 @@ elif busca == "a) Projetos de Lei":
     ano_pl = st.text_input("Digite o ano do projeto de lei:")
 
     if numero_pl.strip() and ano_pl.strip():
-        # Lógica de busca e exibição de Projetos de Lei (mantida como original)
+        # Lógica de busca e exibição de Projetos de Lei
         url_busca_pl = f"https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo=PL&numero={numero_pl}&ano={ano_pl}"
         response_pl = requests.get(url_busca_pl)
         
@@ -88,7 +86,7 @@ elif busca == "b) Propostas de Emenda Constitucional":
     ano_pec = st.text_input("Digite o ano da proposta de emenda constitucional:")
     
     if numero_pec.strip() and ano_pec.strip():
-        # Lógica de busca e exibição de PECs (mantida como original)
+        # Lógica de busca e exibição de PECs
         url_busca_pec = f"https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo=PEC&numero={numero_pec}&ano={ano_pec}"
         response_pec = requests.get(url_busca_pec)
         
@@ -157,21 +155,25 @@ elif busca == "c) Deputados":
                 deputado_nome = deputado_selecionado['nome']
                 deputado_partido = deputado_selecionado['siglaPartido']
                 deputado_uf = deputado_selecionado['siglaUf']
+
                 st.subheader(f"Deputado(a) encontrado(a): {deputado_nome}")
                 st.write(f"Nome: {deputado_nome}")
                 st.write(f"Partido: {deputado_partido}")
                 st.write(f"UF: {deputado_uf}")
                 
-                # Detalhes do Deputado (Busca adicional para foto e e-mail)
+                # Detalhes do Deputado
                 url_detalhes_dep = f"https://dadosabertos.camara.leg.br/api/v2/deputados/{deputado_id}"
                 response_detalhes_dep = requests.get(url_detalhes_dep)
+
                 if response_detalhes_dep.status_code == 200:
                     detalhes_dep = response_detalhes_dep.json().get('dados', {})
                     if detalhes_dep:                        
                         url_foto = detalhes_dep.get('urlFoto')
                         email = detalhes_dep.get('email')
+
                         if url_foto:
-                            st.image(url_foto, width=150)                            
+                            st.image(url_foto, width=150)
+                            
                         st.write(f"E-mail: {email if email else 'Não disponível'}")
                 else:
                     st.warning("Não foi possível carregar detalhes adicionais.")
@@ -205,25 +207,30 @@ elif busca == "c) Deputados":
 
                 # Despesas do Deputado(a)
                 url_despesas = f"https://dadosabertos.camara.leg.br/api/v2/deputados/{deputado_id}/despesas?ordem=DESC&ordenarPor=dataDocumento&itens=10"
-                response_despesas = requests.get(url_despesas)                
+                response_despesas = requests.get(url_despesas)
+                
                 if response_despesas.status_code == 200 and response_despesas.json().get('dados'):
                     dados_despesas = response_despesas.json()['dados']
-                    df_despesas = pd.DataFrame(dados_despesas)                    
-                    if not df_despesas.empty:                        
-                        df_despesas['valorDocumento'] = pd.to_numeric(df_despesas['valorDocumento'], errors='coerce').fillna(0)                        
-                        st.subheader("Últimas despesas do Deputado(a) (últimos 10 lançamentos)")
-                        df_grouped_despesas = df_despesas.groupby('tipoDespesa')['valorDocumento'].sum().reset_index()                        
+                    df_despesas = pd.DataFrame(dados_despesas)
+                    
+                    if not df_despesas.empty:
+                        df_despesas['valorDocumento'] = pd.to_numeric(df_despesas['valorDocumento'], errors='coerce').fillna(0)
+                        
+                        st.subheader("Primeiras despesas do Deputado(a) (últimos 10 lançamentos)")
+
+                        df_grouped_despesas = df_despesas.groupby('tipoDespesa')['valorDocumento'].sum().reset_index()
+                        
                         fig_despesas = px.bar(df_grouped_despesas,
-                                             x='mes',
+                                             x='tipoDespesa',
                                              y='valorDocumento',
-                                             color='tipoDespesa',
-                                             title=f'Despesas por Tipo de {deputado_nome}',
+                                             title=f'Total de Despesas por Tipo de {deputado_nome}',
                                              labels={'tipoDespesa': ' Tipo de Despesa ',
-                                                     'valorDocumento': ' Valor Total (em R$) ',
-                                                     'mes': 'Mês'},
+                                                     'valorDocumento': ' Valor Total (em R$) '},
                                              template="plotly_white")
                         fig_despesas.update_layout(xaxis_tickangle=-45)
                         st.plotly_chart(fig_despesas, use_container_width=True)
+
+                        # Tabela de dados brutos
                         st.subheader("Detalhe das Despesas")
                         st.dataframe(df_despesas[['dataDocumento', 'tipoDespesa', 'valorDocumento', 'nomeFornecedor']],
                                      column_config={'dataDocumento': 'Data',
