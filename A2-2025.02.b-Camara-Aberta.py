@@ -151,13 +151,12 @@ elif busca == "c) Deputados":
             dados_deputado = response.json().get('dados', [])
             
             if dados_deputado:
-                # Usa o primeiro resultado da busca (o mais provável)
+                # Usa o primeiro resultado da busca
                 deputado_selecionado = dados_deputado[0]
                 deputado_id = deputado_selecionado['id']
                 deputado_nome = deputado_selecionado['nome']
                 deputado_partido = deputado_selecionado['siglaPartido']
                 deputado_uf = deputado_selecionado['siglaUf']
-
                 st.subheader(f"Deputado(a) encontrado(a): {deputado_nome}")
                 st.write(f"Nome: {deputado_nome}")
                 st.write(f"Partido: {deputado_partido}")
@@ -166,12 +165,14 @@ elif busca == "c) Deputados":
                 # Detalhes do Deputado (Busca adicional para foto e e-mail)
                 url_detalhes_dep = f"https://dadosabertos.camara.leg.br/api/v2/deputados/{deputado_id}"
                 response_detalhes_dep = requests.get(url_detalhes_dep)
-
                 if response_detalhes_dep.status_code == 200:
                     detalhes_dep = response_detalhes_dep.json().get('dados', {})
-                    if detalhes_dep:
-                        st.image(detalhes_dep['urlFoto'], width=150)
-                        st.write(f"E-mail: {detalhes_dep['email']}")
+                    if detalhes_dep:                        
+                        url_foto = detalhes_dep.get('urlFoto')
+                        email = detalhes_dep.get('email')
+                        if url_foto:
+                            st.image(url_foto, width=150)                            
+                        st.write(f"E-mail: {email if email else 'Não disponível'}")
                 else:
                     st.warning("Não foi possível carregar detalhes adicionais.")
 
@@ -202,23 +203,16 @@ elif busca == "c) Deputados":
                 else:
                     st.info("Nenhum órgão encontrado ou erro na requisição.")
 
-                # Despesas do Deputado(a) - Adicionado tratamento de erro/vazio mais robusto
+                # Despesas do Deputado(a)
                 url_despesas = f"https://dadosabertos.camara.leg.br/api/v2/deputados/{deputado_id}/despesas?ordem=DESC&ordenarPor=dataDocumento&itens=10"
-                response_despesas = requests.get(url_despesas)
-                
+                response_despesas = requests.get(url_despesas)                
                 if response_despesas.status_code == 200 and response_despesas.json().get('dados'):
                     dados_despesas = response_despesas.json()['dados']
-                    df_despesas = pd.DataFrame(dados_despesas)
-                    
-                    if not df_despesas.empty:
-                        # Converte 'valorDocumento' para numérico para o gráfico
-                        df_despesas['valorDocumento'] = pd.to_numeric(df_despesas['valorDocumento'], errors='coerce').fillna(0)
-                        
+                    df_despesas = pd.DataFrame(dados_despesas)                    
+                    if not df_despesas.empty:                        
+                        df_despesas['valorDocumento'] = pd.to_numeric(df_despesas['valorDocumento'], errors='coerce').fillna(0)                        
                         st.subheader("Primeiras despesas do Deputado(a) (últimos 10 lançamentos)")
-                        
-                        # Agrupa as despesas por tipo para o gráfico de barras
-                        df_grouped_despesas = df_despesas.groupby('tipoDespesa')['valorDocumento'].sum().reset_index()
-                        
+                        df_grouped_despesas = df_despesas.groupby('tipoDespesa')['valorDocumento'].sum().reset_index()                        
                         fig_despesas = px.bar(df_grouped_despesas,
                                              x='tipoDespesa',
                                              y='valorDocumento',
@@ -228,8 +222,6 @@ elif busca == "c) Deputados":
                                              template="plotly_white")
                         fig_despesas.update_layout(xaxis_tickangle=-45)
                         st.plotly_chart(fig_despesas, use_container_width=True)
-
-                        # Exibe a tabela de dados brutos
                         st.subheader("Detalhe das Despesas")
                         st.dataframe(df_despesas[['dataDocumento', 'tipoDespesa', 'valorDocumento', 'nomeFornecedor']],
                                      column_config={'dataDocumento': 'Data',
